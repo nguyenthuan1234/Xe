@@ -3,8 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, Heart, Eye, Clock, MapPin, Calendar, Gauge, Fuel, Cog,
-  CheckCircle, Phone, MessageCircle, Send, AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Heart,
+  Eye,
+  Clock,
+  MapPin,
+  Calendar,
+  Gauge,
+  Fuel,
+  Cog,
+  CheckCircle,
+  Phone,
+  MessageCircle,
+  Send,
+  AlertCircle,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Chip, Btn, Spinner, ErrorNotice } from "@/components/ui";
@@ -13,8 +26,10 @@ import { toggleFavorite } from "@/lib/api-users";
 import { formatVND, formatRelativeTime } from "@/lib/format";
 import { toAbsoluteUrl, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import ChatModal from "@/components/ChatModal";
 
-const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=900&h=560&fit=crop&auto=format";
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=900&h=560&fit=crop&auto=format";
 
 export default function CarDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -25,6 +40,7 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
   const [activeImg, setActiveImg] = useState(0);
   const [liked, setLiked] = useState(false);
   const [favBusy, setFavBusy] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -34,7 +50,12 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
         if (mounted) setCar(data);
       })
       .catch((err) => {
-        if (mounted) setError(err instanceof ApiError ? err.message : "Không tải được thông tin xe.");
+        if (mounted)
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "Không tải được thông tin xe.",
+          );
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -88,7 +109,10 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
     );
   }
 
-  const images = car.images && car.images.length > 0 ? car.images.map((i) => toAbsoluteUrl(i)) : [FALLBACK_IMAGE];
+  const images =
+    car.images && car.images.length > 0
+      ? car.images.map((i) => toAbsoluteUrl(i))
+      : [FALLBACK_IMAGE];
 
   const specs: [string, string][] = [
     ["Năm sản xuất", String(car.year)],
@@ -119,13 +143,22 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
             {/* Gallery */}
             <div className="relative rounded-2xl overflow-hidden bg-slate-900">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={images[activeImg]} alt={car.name} className="w-full h-[420px] object-cover" />
+              <img
+                src={images[activeImg]}
+                alt={car.name}
+                className="w-full h-[420px] object-cover"
+              />
               <button
                 onClick={handleToggleFavorite}
                 disabled={favBusy}
                 className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-60"
               >
-                <Heart size={17} className={liked ? "fill-red-500 text-red-500" : "text-slate-600"} />
+                <Heart
+                  size={17}
+                  className={
+                    liked ? "fill-red-500 text-red-500" : "text-slate-600"
+                  }
+                />
               </button>
               <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1.5 rounded-lg">
                 {activeImg + 1}/{images.length}
@@ -154,7 +187,9 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
                     key={i}
                     onClick={() => setActiveImg(i)}
                     className={`rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
-                      activeImg === i ? "border-blue-600 shadow-md" : "border-transparent opacity-60 hover:opacity-100"
+                      activeImg === i
+                        ? "border-blue-600 shadow-md"
+                        : "border-transparent opacity-60 hover:opacity-100"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -174,8 +209,12 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
                   </Chip>
                 )}
               </div>
-              <h1 className="text-2xl font-black text-slate-900 mb-2">{car.name}</h1>
-              <p className="text-blue-600 text-3xl font-black mb-3">{formatVND(car.price)}</p>
+              <h1 className="text-2xl font-black text-slate-900 mb-2">
+                {car.name}
+              </h1>
+              <p className="text-blue-600 text-3xl font-black mb-3">
+                {formatVND(car.price)}
+              </p>
               <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <Eye size={14} /> {car.views.toLocaleString()} lượt xem
@@ -197,7 +236,10 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
                 { icon: Fuel, v: car.fuel, l: "Nhiên liệu" },
                 { icon: Cog, v: car.transmission, l: "Hộp số" },
               ].map(({ icon: Icon, v, l }) => (
-                <div key={l} className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
+                <div
+                  key={l}
+                  className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center"
+                >
                   <Icon size={20} className="text-blue-600 mx-auto mb-2" />
                   <p className="font-black text-slate-900 text-sm">{v}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{l}</p>
@@ -209,7 +251,9 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
             {car.description && (
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
                 <h3 className="font-black text-slate-900 mb-3">Mô tả</h3>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{car.description}</p>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                  {car.description}
+                </p>
               </div>
             )}
 
@@ -220,9 +264,14 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
               </div>
               <div className="divide-y divide-slate-50">
                 {specs.map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between px-5 py-3 hover:bg-blue-50/30 transition-colors">
+                  <div
+                    key={label}
+                    className="flex items-center justify-between px-5 py-3 hover:bg-blue-50/30 transition-colors"
+                  >
                     <span className="text-sm text-slate-500">{label}</span>
-                    <span className="text-sm font-bold text-slate-900">{value}</span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -231,12 +280,19 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
             {/* Condition */}
             {conditionEntries.length > 0 && (
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
-                <h3 className="font-black text-slate-900 mb-4">Tình trạng xe</h3>
+                <h3 className="font-black text-slate-900 mb-4">
+                  Tình trạng xe
+                </h3>
                 <div className="grid grid-cols-2 gap-2.5">
                   {conditionEntries.map(([l, v]) => (
-                    <div key={l} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5">
+                    <div
+                      key={l}
+                      className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5"
+                    >
                       <span className="text-xs text-slate-600">{l}</span>
-                      <span className="text-xs font-bold text-emerald-600">{v}</span>
+                      <span className="text-xs font-bold text-emerald-600">
+                        {v}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -246,13 +302,19 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
             {/* Legal */}
             {legalEntries.length > 0 && (
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
-                <h3 className="font-black text-slate-900 mb-4">Thông tin pháp lý</h3>
+                <h3 className="font-black text-slate-900 mb-4">
+                  Thông tin pháp lý
+                </h3>
                 <div className="space-y-2.5">
                   {legalEntries.map(([l, v]) => (
-                    <div key={l} className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
+                    <div
+                      key={l}
+                      className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0"
+                    >
                       <span className="text-sm text-slate-500">{l}</span>
                       <span className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <CheckCircle size={12} className="text-emerald-500" /> {v}
+                        <CheckCircle size={12} className="text-emerald-500" />{" "}
+                        {v}
                       </span>
                     </div>
                   ))}
@@ -270,18 +332,22 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
                 </div>
                 <div>
                   <p className="font-black text-slate-900">{sellerName(car)}</p>
-                  {typeof car.seller !== "string" && car.seller.verifiedSeller && (
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle size={12} className="text-emerald-500" />
-                      <span className="text-xs text-emerald-600 font-bold">Người bán uy tín</span>
-                    </div>
-                  )}
+                  {typeof car.seller !== "string" &&
+                    car.seller.verifiedSeller && (
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle size={12} className="text-emerald-500" />
+                        <span className="text-xs text-emerald-600 font-bold">
+                          Người bán uy tín
+                        </span>
+                      </div>
+                    )}
                 </div>
               </div>
 
               <div className="space-y-2.5 mb-5">
                 <div className="flex items-center gap-2.5 text-sm text-slate-600 bg-slate-50 rounded-xl px-3.5 py-2.5">
-                  <MapPin size={14} className="text-blue-500 flex-shrink-0" /> {car.location}
+                  <MapPin size={14} className="text-blue-500 flex-shrink-0" />{" "}
+                  {car.location}
                 </div>
               </div>
 
@@ -291,22 +357,38 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
                     <Phone size={16} /> Gọi: {car.sellerPhone}
                   </Btn>
                 </a>
-                <Btn size="lg" variant="secondary" className="w-full" onClick={() => (user ? undefined : router.push("/login"))}>
+                <Btn
+                  size="lg"
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() =>
+                    user ? setShowChat(true) : router.push("/login")
+                  }
+                >
                   <MessageCircle size={16} /> Chat với người bán
                 </Btn>
-                <Btn size="lg" variant="outline" className="w-full" onClick={() => (user ? undefined : router.push("/login"))}>
+                <Btn
+                  size="lg"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => (user ? undefined : router.push("/login"))}
+                >
                   <Send size={16} /> Gửi yêu cầu xem xe
                 </Btn>
               </div>
 
               <div className="mt-4 p-3.5 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-700 leading-relaxed">
                 <AlertCircle size={12} className="inline mr-1" />
-                Kiểm tra kỹ xe trước khi đặt cọc. XeViệt không chịu trách nhiệm giao dịch ngoài hệ thống.
+                Kiểm tra kỹ xe trước khi đặt cọc. XeViệt không chịu trách nhiệm
+                giao dịch ngoài hệ thống.
               </div>
             </div>
           </div>
         </div>
       </div>
+      {showChat && (
+        <ChatModal carId={car._id} onClose={() => setShowChat(false)} />
+      )}
     </div>
   );
 }

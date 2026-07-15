@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, CheckCircle, RefreshCcw, ArrowLeft, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  CheckCircle,
+  RefreshCcw,
+  ArrowLeft,
+  AlertCircle,
+} from "lucide-react";
 import { Btn } from "@/components/ui";
 import { useAuth, PENDING_REGISTRATION_KEY } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
@@ -14,7 +20,6 @@ export default function VerifyPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [countdown, setCountdown] = useState(60);
   const [pendingEmail, setPendingEmail] = useState("");
-  const [devOtpHint, setDevOtpHint] = useState<string | undefined>();
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,9 +29,7 @@ export default function VerifyPage() {
       if (raw) {
         const data = JSON.parse(raw);
         if (data?.email) setPendingEmail(data.email);
-        if (data?.devOtp) setDevOtpHint(data.devOtp);
       } else {
-        // Không có thông tin đăng ký đang chờ — quay lại trang đăng ký
         router.replace("/register");
       }
     } catch {
@@ -49,6 +52,15 @@ export default function VerifyPage() {
     if (val && idx < 5) document.getElementById(`otp-${idx + 1}`)?.focus();
   };
 
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    idx: number,
+  ) => {
+    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
+      document.getElementById(`otp-${idx - 1}`)?.focus();
+    }
+  };
+
   const handleConfirm = async () => {
     const code = otp.join("");
     if (code.length !== 6) {
@@ -66,7 +78,9 @@ export default function VerifyPage() {
       }
       router.push(user.role === "admin" ? "/admin" : "/");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Xác thực OTP thất bại.");
+      setError(
+        err instanceof ApiError ? err.message : "Xác thực OTP thất bại.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -75,8 +89,7 @@ export default function VerifyPage() {
   const handleResend = async () => {
     setError("");
     try {
-      const res = await resendOtp(pendingEmail);
-      setDevOtpHint(res.devOtp);
+      await resendOtp(pendingEmail);
       setCountdown(60);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Gửi lại OTP thất bại.");
@@ -93,16 +106,17 @@ export default function VerifyPage() {
         <div className="bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 w-[72px] h-[72px]">
           <Mail size={32} className="text-blue-600" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Xác nhận tài khoản</h2>
-        <p className="text-slate-500 text-sm mb-1">Mã OTP đã được gửi đến email</p>
+        <h2 className="text-2xl font-black text-slate-900 mb-2">
+          Xác nhận tài khoản
+        </h2>
+        <p className="text-slate-500 text-sm mb-1">
+          Mã OTP đã được gửi đến email
+        </p>
         <p className="text-blue-600 font-bold text-sm mb-2">{pendingEmail}</p>
 
-        {devOtpHint && (
-          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-6 inline-block">
-            Chế độ dev — mã OTP của bạn: <span className="font-black tabular-nums">{devOtpHint}</span>
-          </p>
-        )}
-        {!devOtpHint && <div className="mb-8" />}
+        <p className="text-xs text-slate-400 mb-8">
+          Vui lòng kiểm tra hộp thư (kể cả mục Spam) để lấy mã.
+        </p>
 
         <div className="flex gap-2 justify-center mb-6">
           {otp.map((digit, i) => (
@@ -113,6 +127,7 @@ export default function VerifyPage() {
               inputMode="numeric"
               value={digit}
               onChange={(e) => handleInput(e.target.value, i)}
+              onKeyDown={(e) => handleKeyDown(e, i)}
               className="w-12 h-14 text-center text-xl font-black border-2 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 border-slate-200 bg-slate-50"
               maxLength={1}
             />
@@ -125,17 +140,29 @@ export default function VerifyPage() {
           </p>
         )}
 
-        <Btn size="lg" className="w-full mb-4" onClick={handleConfirm} disabled={submitting}>
-          <CheckCircle size={17} /> {submitting ? "Đang xác nhận..." : "Xác nhận"}
+        <Btn
+          size="lg"
+          className="w-full mb-4"
+          onClick={handleConfirm}
+          disabled={submitting}
+        >
+          <CheckCircle size={17} />{" "}
+          {submitting ? "Đang xác nhận..." : "Xác nhận"}
         </Btn>
 
         <div className="text-sm text-slate-500">
           {countdown > 0 ? (
             <span>
-              Gửi lại mã sau <span className="text-blue-600 font-black tabular-nums">{countdown}s</span>
+              Gửi lại mã sau{" "}
+              <span className="text-blue-600 font-black tabular-nums">
+                {countdown}s
+              </span>
             </span>
           ) : (
-            <button onClick={handleResend} className="text-blue-600 font-bold hover:underline flex items-center gap-1.5 mx-auto">
+            <button
+              onClick={handleResend}
+              className="text-blue-600 font-bold hover:underline flex items-center gap-1.5 mx-auto"
+            >
               <RefreshCcw size={13} /> Gửi lại mã OTP
             </button>
           )}

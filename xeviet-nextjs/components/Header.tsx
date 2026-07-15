@@ -4,7 +4,15 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, User, BarChart2, Shield, LogOut } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  BarChart2,
+  Shield,
+  LogOut,
+  MessageCircle,
+} from "lucide-react";
 import { Btn } from "./ui";
 import { useAuth } from "@/lib/auth";
 
@@ -27,8 +35,6 @@ export default function Header() {
     { label: "Đăng tin", href: "/post-car" },
   ];
 
-  // Link Dashboard/Admin chỉ hiện khi ĐÃ đăng nhập và đúng quyền tương ứng —
-  // không bao giờ lộ đường dẫn /admin cho khách hoặc user thường.
   const roleLink =
     !isLoading && user
       ? user.role === "admin"
@@ -45,18 +51,30 @@ export default function Header() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white/95 backdrop-blur-lg shadow-lg shadow-blue-900/5 border-b border-blue-50" : "bg-white/90 backdrop-blur-md"
+        scrolled
+          ? "bg-white/95 backdrop-blur-lg shadow-lg shadow-blue-900/5 border-b border-blue-50"
+          : "bg-white/90 backdrop-blur-md"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-blue-500/30 relative flex-shrink-0">
-              <Image src="/logo.png" alt="XeViệt" fill className="object-cover" priority />
+              <Image
+                src="/logo.png"
+                alt="XeViệt"
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-black text-slate-900 text-[17px] tracking-tight">XeViệt</span>
-              <span className="text-blue-500 text-[9px] font-bold tracking-widest uppercase">Mua Bán Xe Cũ</span>
+              <span className="font-black text-slate-900 text-[17px] tracking-tight">
+                XeViệt
+              </span>
+              <span className="text-blue-500 text-[9px] font-bold tracking-widest uppercase">
+                Mua Bán Xe Cũ
+              </span>
             </div>
           </Link>
 
@@ -66,12 +84,22 @@ export default function Header() {
                 key={label}
                 href={href}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  pathname === href ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                  pathname === href
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50"
                 }`}
               >
                 {label}
               </Link>
             ))}
+            {!isLoading && user && (
+              <Link
+                href="/messages"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center gap-1.5"
+              >
+                <MessageCircle size={14} /> Tin nhắn
+              </Link>
+            )}
             {roleLink && (
               <Link
                 href={roleLink.href}
@@ -85,13 +113,23 @@ export default function Header() {
           <div className="flex items-center gap-2">
             {!isLoading && user ? (
               <>
-                <Link href="/profile" className="hidden md:flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors">
+                <Link
+                  href="/profile"
+                  className="hidden md:flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
+                >
                   <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 text-xs">
                     {user.name[0]?.toUpperCase()}
                   </div>
-                  <span className="text-sm font-semibold max-w-[110px] truncate">{user.name}</span>
+                  <span className="text-sm font-semibold max-w-[110px] truncate">
+                    {user.name}
+                  </span>
                 </Link>
-                <Btn variant="ghost" size="sm" onClick={handleLogout} className="hidden md:flex">
+                <Btn
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="hidden md:flex"
+                >
                   <LogOut size={14} /> Đăng xuất
                 </Btn>
               </>
@@ -107,7 +145,10 @@ export default function Header() {
                 </Link>
               </>
             )}
-            <button className="md:hidden p-2 rounded-xl hover:bg-slate-100" onClick={() => setOpen((v) => !v)}>
+            <button
+              className="md:hidden p-2 rounded-xl hover:bg-slate-100"
+              onClick={() => setOpen((v) => !v)}
+            >
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
@@ -126,6 +167,16 @@ export default function Header() {
               {label}
             </Link>
           ))}
+
+          {!isLoading && user && (
+            <Link
+              href="/messages"
+              onClick={() => setOpen(false)}
+              className="text-left px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center gap-2"
+            >
+              <MessageCircle size={15} /> Tin nhắn
+            </Link>
+          )}
 
           {roleLink && (
             <Link

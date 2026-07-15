@@ -9,6 +9,7 @@ import { UsersModule } from "./users/users.module";
 import { CarsModule } from "./cars/cars.module";
 import { CategoriesModule } from "./categories/categories.module";
 import { UploadsModule } from "./uploads/uploads.module";
+import { ConversationsModule } from "./conversations/conversations.module";
 
 @Module({
   imports: [
@@ -17,7 +18,10 @@ import { UploadsModule } from "./uploads/uploads.module";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: config.get<string>("MONGODB_URI", "mongodb://localhost:27017/xeviet"),
+        uri: config.get<string>(
+          "MONGODB_URI",
+          "mongodb://localhost:27017/xeviet",
+        ),
       }),
     }),
     // Cho phép truy cập file ảnh đã upload qua http://localhost:3001/uploads/<file>
@@ -30,6 +34,7 @@ import { UploadsModule } from "./uploads/uploads.module";
     CarsModule,
     CategoriesModule,
     UploadsModule,
+    ConversationsModule,
   ],
 })
 export class AppModule {}
