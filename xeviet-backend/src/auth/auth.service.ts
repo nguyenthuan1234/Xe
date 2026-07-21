@@ -25,7 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   private otpExpiryMinutes() {
     return this.config.get<number>("OTP_EXPIRES_MINUTES", 5);
@@ -144,7 +144,7 @@ export class AuthService {
     }
     if (user.status === "locked") {
       throw new ForbiddenException(
-        "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+        "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên qua số điện thoại 1234567890 (A.Thuận).",
       );
     }
 

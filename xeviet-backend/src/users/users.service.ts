@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import * as bcrypt from "bcrypt";
@@ -7,10 +12,14 @@ import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { AdminUpdateUserDto } from "./dto/admin-update-user.dto";
 import { QueryUsersDto } from "./dto/query-users.dto";
+import { Car, CarDocument } from "../cars/schemas/car.schema";
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Car.name) private carModel: Model<CarDocument>,
+  ) {}
 
   async findByEmail(email: string, withPassword = false) {
     const query = this.userModel.findOne({ email: email.toLowerCase().trim() });
@@ -24,7 +33,12 @@ export class UsersService {
     return user;
   }
 
-  async create(data: { name: string; email: string; phone: string; password: string }) {
+  async create(data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+  }) {
     const existing = await this.findByEmail(data.email);
     if (existing) throw new BadRequestException("Email này đã được đăng ký.");
 
@@ -46,11 +60,18 @@ export class UsersService {
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
-    const user = await this.userModel.findById(userId).select("+passwordHash").exec();
+    const user = await this.userModel
+      .findById(userId)
+      .select("+passwordHash")
+      .exec();
     if (!user) throw new NotFoundException("Không tìm thấy người dùng.");
 
-    const matches = await bcrypt.compare(dto.currentPassword, user.passwordHash);
-    if (!matches) throw new BadRequestException("Mật khẩu hiện tại không đúng.");
+    const matches = await bcrypt.compare(
+      dto.currentPassword,
+      user.passwordHash,
+    );
+    if (!matches)
+      throw new BadRequestException("Mật khẩu hiện tại không đúng.");
 
     user.passwordHash = await bcrypt.hash(dto.newPassword, 10);
     await user.save();
@@ -58,7 +79,8 @@ export class UsersService {
   }
 
   async toggleFavorite(userId: string, carId: string) {
-    if (!Types.ObjectId.isValid(carId)) throw new BadRequestException("carId không hợp lệ.");
+    if (!Types.ObjectId.isValid(carId))
+      throw new BadRequestException("carId không hợp lệ.");
     const user = await this.findById(userId);
     const objectId = new Types.ObjectId(carId);
     const idx = user.favoriteCarIds.findIndex((id) => id.equals(objectId));
@@ -104,9 +126,18 @@ export class UsersService {
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async adminUpdate(id: string, dto: AdminUpdateUserDto, actingAdminId: string) {
-    if (id === actingAdminId && (dto.role === "user" || dto.status === "locked")) {
-      throw new ForbiddenException("Bạn không thể tự hạ quyền hoặc tự khóa chính mình.");
+  async adminUpdate(
+    id: string,
+    dto: AdminUpdateUserDto,
+    actingAdminId: string,
+  ) {
+    if (
+      id === actingAdminId &&
+      (dto.role === "user" || dto.status === "locked")
+    ) {
+      throw new ForbiddenException(
+        "Bạn không thể tự hạ quyền hoặc tự khóa chính mình.",
+      );
     }
     const user = await this.findById(id);
     Object.assign(user, dto);
@@ -116,10 +147,31 @@ export class UsersService {
 
   async adminDelete(id: string, actingAdminId: string) {
     if (id === actingAdminId) {
-      throw new ForbiddenException("Bạn không thể tự xóa tài khoản của chính mình.");
+      throw new ForbiddenException(
+        "Bạn không thể tự xóa tài khoản của chính mình.",
+      );
     }
-    const result = await this.userModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException("Không tìm thấy người dùng.");
-    return { message: "Đã xóa tài khoản." };
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException("ID người dùng không hợp lệ.");
+    }
+
+    const user = await this.userModel.findById(id).exec();
+    if (!user) throw new NotFoundException("Không tìm thấy người dùng.");
+
+    const objectId = new Types.ObjectId(id);
+    const { deletedCount } = await this.carModel
+      .deleteMany({ seller: objectId })
+      .exec();
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `[adminDelete] Xóa user ${id} → đã xóa ${deletedCount} bài đăng liên quan`,
+    );
+
+    await this.userModel.findByIdAndDelete(id).exec();
+
+    return {
+      message: `Đã xóa tài khoản và ${deletedCount ?? 0} bài đăng liên quan.`,
+    };
   }
 }

@@ -2,14 +2,45 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminCarsManagement from "@/components/admin/AdminCarsManagement";
 import {
-  Shield, LogOut, Users, Clock, CheckCircle, Tag, Search, Plus, Eye, XCircle, Lock, Unlock, Trash2,
+  Shield,
+  LogOut,
+  Users,
+  Clock,
+  CheckCircle,
+  Tag,
+  Search,
+  Plus,
+  Eye,
+  XCircle,
+  Lock,
+  Unlock,
+  Trash2,
+  FileText,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Chip, Btn, Field, Spinner, ErrorNotice } from "@/components/ui";
-import { fetchPendingCars, approveCar, rejectCar, type ApiCar } from "@/lib/api-cars";
-import { fetchUsersAdmin, updateUserAdmin, deleteUserAdmin, type ApiUser } from "@/lib/api-users";
-import { fetchCategories, createCategory, updateCategory, deleteCategory, type ApiCategory, type CategoryGroup } from "@/lib/api-categories";
+import {
+  fetchPendingCars,
+  approveCar,
+  rejectCar,
+  type ApiCar,
+} from "@/lib/api-cars";
+import {
+  fetchUsersAdmin,
+  updateUserAdmin,
+  deleteUserAdmin,
+  type ApiUser,
+} from "@/lib/api-users";
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  type ApiCategory,
+  type CategoryGroup,
+} from "@/lib/api-categories";
 import { uploadImage } from "@/lib/api-uploads";
 import { formatVND, formatRelativeTime } from "@/lib/format";
 import { toAbsoluteUrl, ApiError } from "@/lib/api";
@@ -45,7 +76,11 @@ export default function AdminDashboardPage() {
       const res = await fetchPendingCars({ limit: 50 });
       setPendingCars(res.items);
     } catch (err) {
-      setCarsError(err instanceof ApiError ? err.message : "Không tải được danh sách tin chờ duyệt.");
+      setCarsError(
+        err instanceof ApiError
+          ? err.message
+          : "Không tải được danh sách tin chờ duyệt.",
+      );
     } finally {
       setLoadingCars(false);
     }
@@ -80,10 +115,17 @@ export default function AdminDashboardPage() {
     setLoadingUsers(true);
     setUsersError("");
     try {
-      const res = await fetchUsersAdmin({ limit: 50, search: search || undefined });
+      const res = await fetchUsersAdmin({
+        limit: 50,
+        search: search || undefined,
+      });
       setUsers(res.items);
     } catch (err) {
-      setUsersError(err instanceof ApiError ? err.message : "Không tải được danh sách tài khoản.");
+      setUsersError(
+        err instanceof ApiError
+          ? err.message
+          : "Không tải được danh sách tài khoản.",
+      );
     } finally {
       setLoadingUsers(false);
     }
@@ -91,7 +133,9 @@ export default function AdminDashboardPage() {
 
   const handleToggleLock = async (u: ApiUser) => {
     try {
-      const updated = await updateUserAdmin(u._id, { status: u.status === "active" ? "locked" : "active" });
+      const updated = await updateUserAdmin(u._id, {
+        status: u.status === "active" ? "locked" : "active",
+      });
       setUsers((prev) => prev.map((x) => (x._id === u._id ? updated : x)));
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "Cập nhật thất bại.");
@@ -99,10 +143,16 @@ export default function AdminDashboardPage() {
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (!confirm("Xóa tài khoản này? Hành động không thể hoàn tác.")) return;
+    if (
+      !confirm(
+        "Xóa tài khoản này? Toàn bộ bài đăng của họ cũng sẽ bị xóa. Hành động không thể hoàn tác.",
+      )
+    )
+      return;
     try {
-      await deleteUserAdmin(id);
+      const res = await deleteUserAdmin(id);
       setUsers((prev) => prev.filter((x) => x._id !== id));
+      if (res?.message) alert(res.message); // hiện "Đã xóa tài khoản và 3 bài đăng liên quan."
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "Xóa tài khoản thất bại.");
     }
@@ -111,7 +161,9 @@ export default function AdminDashboardPage() {
   // ── Danh mục ─────────────────────────────────────────────────────────
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
-  const [newCategoryName, setNewCategoryName] = useState<Record<CategoryGroup, string>>({
+  const [newCategoryName, setNewCategoryName] = useState<
+    Record<CategoryGroup, string>
+  >({
     brand: "",
     carType: "",
     model: "",
@@ -157,7 +209,9 @@ export default function AdminDashboardPage() {
     try {
       const url = await uploadImage(file);
       const updated = await updateCategory(categoryId, { imageUrl: url });
-      setCategories((prev) => prev.map((c) => (c._id === categoryId ? updated : c)));
+      setCategories((prev) =>
+        prev.map((c) => (c._id === categoryId ? updated : c)),
+      );
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "Tải ảnh lên thất bại.");
     } finally {
@@ -174,6 +228,7 @@ export default function AdminDashboardPage() {
 
   const tabs = [
     { id: "approvals", label: "Phê duyệt bài đăng", icon: CheckCircle },
+    { id: "manageCars", label: "Quản lý bài đăng", icon: FileText },
     { id: "users", label: "Quản lý tài khoản", icon: Users },
     { id: "categories", label: "Danh mục", icon: Tag },
   ];
@@ -181,7 +236,9 @@ export default function AdminDashboardPage() {
   if (authLoading || !user || user.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">Đang kiểm tra quyền truy cập...</p>
+        <p className="text-sm text-slate-500">
+          Đang kiểm tra quyền truy cập...
+        </p>
       </div>
     );
   }
@@ -200,7 +257,9 @@ export default function AdminDashboardPage() {
                 </div>
                 Admin Dashboard
               </h1>
-              <p className="text-slate-500 text-sm mt-1">Quản lý toàn bộ hệ thống XeViệt</p>
+              <p className="text-slate-500 text-sm mt-1">
+                Quản lý toàn bộ hệ thống XeViệt
+              </p>
             </div>
             <Btn
               variant="ghost"
@@ -217,12 +276,35 @@ export default function AdminDashboardPage() {
           {/* KPI cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             {[
-              { l: "Tổng tài khoản", v: users.length || "—", icon: Users, bg: "bg-blue-50", fg: "text-blue-600" },
-              { l: "Tin chờ phê duyệt", v: pendingCars.length, icon: Clock, bg: "bg-amber-50", fg: "text-amber-600" },
-              { l: "Danh mục", v: categories.length, icon: Tag, bg: "bg-violet-50", fg: "text-violet-600" },
+              {
+                l: "Tổng tài khoản",
+                v: users.length || "—",
+                icon: Users,
+                bg: "bg-blue-50",
+                fg: "text-blue-600",
+              },
+              {
+                l: "Tin chờ phê duyệt",
+                v: pendingCars.length,
+                icon: Clock,
+                bg: "bg-amber-50",
+                fg: "text-amber-600",
+              },
+              {
+                l: "Danh mục",
+                v: categories.length,
+                icon: Tag,
+                bg: "bg-violet-50",
+                fg: "text-violet-600",
+              },
             ].map(({ l, v, icon: Icon, bg, fg }) => (
-              <div key={l} className="bg-white rounded-2xl border border-slate-100 p-5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${bg}`}>
+              <div
+                key={l}
+                className="bg-white rounded-2xl border border-slate-100 p-5"
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${bg}`}
+                >
                   <Icon size={18} className={fg} />
                 </div>
                 <p className="text-2xl font-black text-slate-900">{v}</p>
@@ -238,7 +320,9 @@ export default function AdminDashboardPage() {
                 key={id}
                 onClick={() => setTab(id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                  tab === id ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"
+                  tab === id
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <Icon size={14} /> {label}
@@ -251,7 +335,8 @@ export default function AdminDashboardPage() {
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
               <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="font-black text-slate-900">
-                  Tin đăng chờ phê duyệt <span className="text-blue-600">({pendingCars.length})</span>
+                  Tin đăng chờ phê duyệt{" "}
+                  <span className="text-blue-600">({pendingCars.length})</span>
                 </h3>
               </div>
               {loadingCars ? (
@@ -261,11 +346,16 @@ export default function AdminDashboardPage() {
                   <ErrorNotice message={carsError} onRetry={loadPending} />
                 </div>
               ) : pendingCars.length === 0 ? (
-                <div className="p-10 text-center text-sm text-slate-500">Không có tin nào đang chờ duyệt. 🎉</div>
+                <div className="p-10 text-center text-sm text-slate-500">
+                  Không có tin nào đang chờ duyệt. 🎉
+                </div>
               ) : (
                 <div className="divide-y divide-slate-50">
                   {pendingCars.map((car) => (
-                    <div key={car._id} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors">
+                    <div
+                      key={car._id}
+                      className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={
@@ -277,8 +367,12 @@ export default function AdminDashboardPage() {
                         className="w-20 h-14 object-cover rounded-xl flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-black text-slate-900 text-sm">{car.name}</p>
-                        <p className="text-blue-600 font-bold text-sm">{formatVND(car.price)}</p>
+                        <p className="font-black text-slate-900 text-sm">
+                          {car.name}
+                        </p>
+                        <p className="text-blue-600 font-bold text-sm">
+                          {formatVND(car.price)}
+                        </p>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {car.location} · {formatRelativeTime(car.createdAt)}
                         </p>
@@ -315,13 +409,20 @@ export default function AdminDashboardPage() {
           {tab === "users" && (
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
               <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3">
-                <h3 className="font-black text-slate-900">Tài khoản hệ thống ({users.length})</h3>
+                <h3 className="font-black text-slate-900">
+                  Tài khoản hệ thống ({users.length})
+                </h3>
                 <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search
+                    size={13}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
                   <input
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && loadUsers(userSearch)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && loadUsers(userSearch)
+                    }
                     placeholder="Tìm tài khoản..."
                     className="bg-slate-50 border border-slate-200 rounded-xl py-2 pl-8 pr-3 text-xs outline-none focus:border-blue-500 w-48"
                   />
@@ -331,15 +432,28 @@ export default function AdminDashboardPage() {
                 <Spinner />
               ) : usersError ? (
                 <div className="p-5">
-                  <ErrorNotice message={usersError} onRetry={() => loadUsers(userSearch)} />
+                  <ErrorNotice
+                    message={usersError}
+                    onRetry={() => loadUsers(userSearch)}
+                  />
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-100">
                       <tr>
-                        {["Tên người dùng", "Email", "Số điện thoại", "Vai trò", "Trạng thái", "Hành động"].map((h) => (
-                          <th key={h} className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                        {[
+                          "Tên người dùng",
+                          "Email",
+                          "Số điện thoại",
+                          "Vai trò",
+                          "Trạng thái",
+                          "Hành động",
+                        ].map((h) => (
+                          <th
+                            key={h}
+                            className="text-left px-5 py-3 text-xs font-black text-slate-400 uppercase tracking-wide whitespace-nowrap"
+                          >
                             {h}
                           </th>
                         ))}
@@ -347,31 +461,58 @@ export default function AdminDashboardPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {users.map((u) => (
-                        <tr key={u._id} className="hover:bg-slate-50/80 transition-colors">
+                        <tr
+                          key={u._id}
+                          className="hover:bg-slate-50/80 transition-colors"
+                        >
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-2.5">
                               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center font-black text-white text-xs shadow-sm">
                                 {u.name[0]?.toUpperCase()}
                               </div>
-                              <span className="font-bold text-slate-900 whitespace-nowrap">{u.name}</span>
+                              <span className="font-bold text-slate-900 whitespace-nowrap">
+                                {u.name}
+                              </span>
                             </div>
                           </td>
-                          <td className="px-5 py-4 text-slate-600 text-xs">{u.email}</td>
-                          <td className="px-5 py-4 text-slate-600 text-xs whitespace-nowrap">{u.phone}</td>
-                          <td className="px-5 py-4">
-                            <Chip variant={u.role === "admin" ? "info" : "default"}>{u.role === "admin" ? "Admin" : "Người dùng"}</Chip>
+                          <td className="px-5 py-4 text-slate-600 text-xs">
+                            {u.email}
+                          </td>
+                          <td className="px-5 py-4 text-slate-600 text-xs whitespace-nowrap">
+                            {u.phone}
                           </td>
                           <td className="px-5 py-4">
-                            <Chip variant={u.status === "active" ? "success" : "danger"}>{u.status === "active" ? "Hoạt động" : "Bị khóa"}</Chip>
+                            <Chip
+                              variant={u.role === "admin" ? "info" : "default"}
+                            >
+                              {u.role === "admin" ? "Admin" : "Người dùng"}
+                            </Chip>
+                          </td>
+                          <td className="px-5 py-4">
+                            <Chip
+                              variant={
+                                u.status === "active" ? "success" : "danger"
+                              }
+                            >
+                              {u.status === "active" ? "Hoạt động" : "Bị khóa"}
+                            </Chip>
                           </td>
                           <td className="px-5 py-4">
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleToggleLock(u)}
-                                title={u.status === "active" ? "Khóa tài khoản" : "Mở khóa"}
+                                title={
+                                  u.status === "active"
+                                    ? "Khóa tài khoản"
+                                    : "Mở khóa"
+                                }
                                 className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-500 transition-colors"
                               >
-                                {u.status === "active" ? <Lock size={13} /> : <Unlock size={13} />}
+                                {u.status === "active" ? (
+                                  <Lock size={13} />
+                                ) : (
+                                  <Unlock size={13} />
+                                )}
                               </button>
                               <button
                                 onClick={() => handleDeleteUser(u._id)}
@@ -400,14 +541,26 @@ export default function AdminDashboardPage() {
                 CATEGORY_GROUPS.map(({ group, title }) => {
                   const items = categories.filter((c) => c.group === group);
                   return (
-                    <div key={group} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                    <div
+                      key={group}
+                      className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
+                    >
                       <div className="px-5 py-3.5 border-b border-slate-100">
-                        <h3 className="font-black text-slate-900 text-sm">{title}</h3>
+                        <h3 className="font-black text-slate-900 text-sm">
+                          {title}
+                        </h3>
                       </div>
                       <div className="p-3 space-y-1">
-                        {items.length === 0 && <p className="text-xs text-slate-400 px-3 py-2">Chưa có mục nào.</p>}
+                        {items.length === 0 && (
+                          <p className="text-xs text-slate-400 px-3 py-2">
+                            Chưa có mục nào.
+                          </p>
+                        )}
                         {items.map((item) => (
-                          <div key={item._id} className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
+                          <div
+                            key={item._id}
+                            className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors group"
+                          >
                             <div className="flex items-center gap-2.5 min-w-0">
                               {group === "brand" && (
                                 <label
@@ -420,22 +573,33 @@ export default function AdminDashboardPage() {
                                     className="hidden"
                                     onChange={(e) => {
                                       const file = e.target.files?.[0];
-                                      if (file) handleUploadBrandImage(item._id, file);
+                                      if (file)
+                                        handleUploadBrandImage(item._id, file);
                                       e.target.value = "";
                                     }}
                                   />
                                   {item.imageUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={toAbsoluteUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-contain p-1" />
+                                    <img
+                                      src={toAbsoluteUrl(item.imageUrl)}
+                                      alt={item.name}
+                                      className="w-full h-full object-contain p-1"
+                                    />
                                   ) : (
-                                    <span className="text-xs font-black text-slate-400">{item.name[0]}</span>
+                                    <span className="text-xs font-black text-slate-400">
+                                      {item.name[0]}
+                                    </span>
                                   )}
                                   <span className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center text-white text-[9px] font-bold transition-opacity">
-                                    {uploadingImageId === item._id ? "..." : "Đổi ảnh"}
+                                    {uploadingImageId === item._id
+                                      ? "..."
+                                      : "Đổi ảnh"}
                                   </span>
                                 </label>
                               )}
-                              <span className="text-sm font-semibold text-slate-700 truncate">{item.name}</span>
+                              <span className="text-sm font-semibold text-slate-700 truncate">
+                                {item.name}
+                              </span>
                             </div>
                             <button
                               onClick={() => handleDeleteCategory(item._id)}
@@ -449,9 +613,18 @@ export default function AdminDashboardPage() {
                           <Field
                             placeholder={`Thêm ${title.toLowerCase()}...`}
                             value={newCategoryName[group]}
-                            onChange={(e) => setNewCategoryName((prev) => ({ ...prev, [group]: e.target.value }))}
+                            onChange={(e) =>
+                              setNewCategoryName((prev) => ({
+                                ...prev,
+                                [group]: e.target.value,
+                              }))
+                            }
                           />
-                          <Btn size="sm" variant="secondary" onClick={() => handleAddCategory(group)}>
+                          <Btn
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleAddCategory(group)}
+                          >
                             <Plus size={12} /> Thêm
                           </Btn>
                         </div>
@@ -462,6 +635,7 @@ export default function AdminDashboardPage() {
               )}
             </div>
           )}
+          {tab === "manageCars" && <AdminCarsManagement />}
         </div>
       </div>
     </div>

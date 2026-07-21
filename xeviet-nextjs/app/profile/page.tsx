@@ -140,20 +140,24 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-24 pb-14">
         {/* Profile header */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
+          {/* Cover Image */}
           <div className="h-28 bg-gradient-to-r from-blue-600 to-blue-800 relative">
             <div className="absolute inset-0 opacity-20">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=200&fit=crop&auto=format" alt="" className="w-full h-full object-cover" />
             </div>
           </div>
-          <div className="px-6 pb-5">
+
+          <div className="px-6 pb-5 relative">
             <div className="flex items-end gap-4 -mt-10 mb-4">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center font-black text-white text-3xl shadow-xl border-4 border-white">
+              {/* Avatar */}
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center font-black text-white text-3xl shadow-xl border-4 border-white shrink-0">
                 {user.name[0]?.toUpperCase()}
               </div>
-              <div className="pb-1">
-                <h2 className="text-xl font-black text-slate-900">{user.name}</h2>
-                <p className="text-slate-500 text-sm flex items-center gap-1.5">
+              {/* Name & Email */}
+              <div className="pb-1 min-w-0">
+                <h2 className="text-xl font-black text-slate-900 truncate">{user.name}</h2>
+                <p className="text-slate-500 text-sm flex items-center gap-1.5 truncate">
                   {user.role === "admin" ? (
                     <>
                       <CheckCircle size={13} className="text-emerald-500" /> Quản trị viên
@@ -163,7 +167,8 @@ export default function ProfilePage() {
                   )}
                 </p>
               </div>
-              <div className="ml-auto pb-1 flex gap-2">
+              {/* Buttons */}
+              <div className="ml-auto pb-1 flex gap-2 shrink-0">
                 {user.role === "admin" ? (
                   <Btn variant="secondary" size="sm" onClick={() => router.push("/admin")}>
                     <BarChart2 size={13} /> Admin
@@ -187,9 +192,8 @@ export default function ProfilePage() {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                tab === id ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-all ${tab === id ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"
+                }`}
             >
               {label}
             </button>

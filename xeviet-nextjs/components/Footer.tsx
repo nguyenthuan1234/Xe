@@ -36,8 +36,7 @@ export default function Footer() {
               {[
                 ["Tìm xe cũ", "/search"],
                 ["Đăng tin bán xe", "/post-car"],
-                ["Định giá xe", "/"],
-                ["Vay mua xe", "/"],
+
               ].map(([label, href]) => (
                 <li key={label}>
                   <Link href={href} className="hover:text-white transition-colors">
@@ -47,16 +46,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          <div>
-            <h4 className="font-bold text-white text-sm mb-4">Hỗ trợ</h4>
-            <ul className="space-y-2.5 text-xs">
-              {["Trung tâm trợ giúp", "Điều khoản sử dụng", "Chính sách bảo mật", "Báo vi phạm"].map((t) => (
-                <li key={t}>
-                  <button className="hover:text-white transition-colors">{t}</button>
-                </li>
-              ))}
-            </ul>
-          </div>
+
           <div>
             <h4 className="font-bold text-white text-sm mb-4">Liên hệ</h4>
             <ul className="space-y-2.5 text-xs">
@@ -77,7 +67,7 @@ export default function Footer() {
         </div>
         <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-600">
           <p>© 2024 XeViệt JSC. Tất cả quyền được bảo lưu.</p>
-          <p>ĐKKD: 0123456789 – Sở KH&amp;ĐT Hà Nội cấp</p>
+
         </div>
       </div>
     </footer>

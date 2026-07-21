@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { FilterQuery, Model, Types } from "mongoose";
 import { Car, CarDocument } from "./schemas/car.schema";
@@ -28,8 +32,12 @@ export class CarsService {
   }
 
   async findOnePublic(id: string) {
-    if (!Types.ObjectId.isValid(id)) throw new NotFoundException("Xe không tồn tại.");
-    const car = await this.carModel.findById(id).populate("seller", "name avatar verifiedSeller createdAt").exec();
+    if (!Types.ObjectId.isValid(id))
+      throw new NotFoundException("Xe không tồn tại.");
+    const car = await this.carModel
+      .findById(id)
+      .populate("seller", "name avatar verifiedSeller createdAt")
+      .exec();
     if (!car) throw new NotFoundException("Xe không tồn tại.");
     return car;
   }
@@ -39,7 +47,9 @@ export class CarsService {
   }
 
   async findMine(sellerId: string, query: QueryCarsDto) {
-    const filter: FilterQuery<CarDocument> = { seller: new Types.ObjectId(sellerId) };
+    const filter: FilterQuery<CarDocument> = {
+      seller: new Types.ObjectId(sellerId),
+    };
     this.applyCommonFilters(filter, query);
     return this.paginate(filter, query);
   }
@@ -62,13 +72,16 @@ export class CarsService {
   }
 
   private async getOwnedOrAdmin(id: string, currentUser: JwtPayloadUser) {
-    if (!Types.ObjectId.isValid(id)) throw new NotFoundException("Xe không tồn tại.");
+    if (!Types.ObjectId.isValid(id))
+      throw new NotFoundException("Xe không tồn tại.");
     const car = await this.carModel.findById(id).exec();
     if (!car) throw new NotFoundException("Xe không tồn tại.");
 
     const isOwner = car.seller.toString() === currentUser.userId;
     if (!isOwner && currentUser.role !== "admin") {
-      throw new ForbiddenException("Bạn không có quyền thao tác trên tin đăng này.");
+      throw new ForbiddenException(
+        "Bạn không có quyền thao tác trên tin đăng này.",
+      );
     }
     return car;
   }
@@ -88,15 +101,29 @@ export class CarsService {
   }
 
   async adminSetStatus(id: string, status: "active" | "rejected") {
-    if (!Types.ObjectId.isValid(id)) throw new NotFoundException("Xe không tồn tại.");
-    const car = await this.carModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
+    if (!Types.ObjectId.isValid(id))
+      throw new NotFoundException("Xe không tồn tại.");
+    const car = await this.carModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .exec();
     if (!car) throw new NotFoundException("Xe không tồn tại.");
     return car;
   }
 
+  async deleteAllBySeller(sellerId: string) {
+    if (!Types.ObjectId.isValid(sellerId)) return { deletedCount: 0 };
+    const result = await this.carModel
+      .deleteMany({ seller: new Types.ObjectId(sellerId) })
+      .exec();
+    return { deletedCount: result.deletedCount ?? 0 };
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────
 
-  private applyCommonFilters(filter: FilterQuery<CarDocument>, query: QueryCarsDto) {
+  private applyCommonFilters(
+    filter: FilterQuery<CarDocument>,
+    query: QueryCarsDto,
+  ) {
     if (query.search) filter.$text = { $search: query.search };
     if (query.brand) filter.brand = query.brand;
     if (query.type) filter.type = query.type;
@@ -116,7 +143,10 @@ export class CarsService {
     }
   }
 
-  private async paginate(filter: FilterQuery<CarDocument>, query: QueryCarsDto) {
+  private async paginate(
+    filter: FilterQuery<CarDocument>,
+    query: QueryCarsDto,
+  ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 12;
 
@@ -139,6 +169,12 @@ export class CarsService {
       this.carModel.countDocuments(filter).exec(),
     ]);
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 }
